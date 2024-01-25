@@ -1,25 +1,13 @@
 class Book {
-    constructor(title, author, ISBN) {
+    constructor(title, author, isbn) {
         this.title = title;
         this.author = author;
-        this.ISBN = ISBN;
+        this.isbn = isbn;
     }
 }
 class Ui {
     static displayBooks() {
-        const BooksData = [
-            {
-                title: "BookOne",
-                author: "authorOne",
-                isbn: "IsbnOne",
-            },
-            {
-                title: "Book TwO",
-                author: "authorTwO",
-                isbn: "IsbnTwO",
-            },
-        ];
-        const books = BooksData;
+        const books = Store.getBooks();
         books.forEach((book) => Ui.addBookToLIst(book));
     }
     static addBookToLIst(book) {
@@ -28,7 +16,7 @@ class Ui {
         row.innerHTML = `
     <td>${book.title}</td>
     <td>${book.author}</td>
-    <td>${book.Isbn}</td>
+    <td>${book.isbn}</td>
     <td><a href ="#" class = "btn btn-danger btn-sm delete ">X</a></td>
     
     `;
@@ -56,6 +44,32 @@ class Ui {
         }, 1000);
     }
 }
+class Store {
+    static getBooks() {
+        let books;
+        if (localStorage.getItem('books') === null) {
+            books = [];
+        }
+        else {
+            books = JSON.parse(localStorage.getItem('books'));
+        }
+        return books;
+    }
+    static addBook(book) {
+        const books = Store.getBooks();
+        books.push(book);
+        localStorage.setItem('books', JSON.stringify(books));
+    }
+    static removeBook(isbn) {
+        const books = Store.getBooks();
+        books.forEach((book, index) => {
+            if (book.isbn === isbn) {
+                books.splice(index, 1);
+            }
+        });
+        localStorage.setItem('books', JSON.stringify(books));
+    }
+}
 document.addEventListener("DOMContentLoaded", Ui.displayBooks);
 document.querySelector("#book-form").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -69,11 +83,14 @@ document.querySelector("#book-form").addEventListener("submit", (e) => {
         const book = new Book(title, author, isbn);
         Ui.addBookToLIst(book);
         Ui.showAlert("Book Add to list ", "success");
+        Store.addBook(book);
         Ui.clearFiled();
     }
 });
 document.querySelector("#book-list").addEventListener("click", (e) => {
     Ui.deleteBook(e.target);
+    const target = e.target;
+    Store.removeBook(target.parentElement.previousElementSibling.textContent);
     Ui.showAlert(" Book Remove ", "info");
 });
 //# sourceMappingURL=main.js.map
